@@ -11,7 +11,10 @@ const pool = new Pool({
 async function query(text, params) {
   try {
     const result = await pool.query(text, params);
-    return result.rows;
+    return {
+      rows: result.rows,
+      rowCount: result.rowCount,
+    };
   } catch (error) {
     throw new Error(error.message);
   }
