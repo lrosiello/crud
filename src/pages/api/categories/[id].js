@@ -1,4 +1,5 @@
 import { query } from "../../../lib/db";
+import { areAllDataFilled } from "../utils/validations";
 
 export default async function handler(req, res) {
   let message;
@@ -52,18 +53,16 @@ export default async function handler(req, res) {
       res.status(500).json({ error: "The id value is not valid" });
     } else {
       const { categoryName, description, orderNumber } = req.body;
+     
 
       //VERIFIES THAT THE CATEGORY DOES NOT EXISTS
       const verifyName = await query(
-        "SELECT nombre_categoria FROM categorias WHERE nombre_categoria = $1",
-        [categoryName]
+        "SELECT nombre_categoria FROM categorias WHERE nombre_categoria = $1 AND id != $2",
+        [categoryName, categoryId]
       );
-      if (
-        categoryName !== null &&
-        categoryName !== "" &&
-        orderNumber !== null &&
-        orderNumber !== ""
-      ) {
+      //VERIFIES IF DATA IS FILLED
+      if (areAllDataFilled ([categoryName,orderNumber])) { //CALL A FUNCTION TO VERIFY DATA FROM THE BODY
+
         if (verifyName.rowCount === 0) {
           const updateCategory = await query(
             "UPDATE categorias SET nombre_categoria = $1, descripcion = $2, numero_orden = $3 WHERE id = $4",

@@ -1,4 +1,5 @@
 import { query } from "../../lib/db";
+import { areAllDataFilled, isItExists } from "./utils/validations";
 
 export default async function handler(req, res) {
   let message;
@@ -16,18 +17,11 @@ export default async function handler(req, res) {
     const { categoryName, description, orderNumber } = req.body;
 
     //VERIFIES THAT ALL INPUTS ARE FILLED
-    if (
-      categoryName !== null &&
-      categoryName!== "" &&
-      orderNumber !== null &&
-      orderNumber !== ""
-    ) {
+    if (areAllDataFilled ([categoryName,orderNumber])) {
+    
       //VERIFIES THAT THE CATEGORY DOES NOT EXISTS
-      const verifyName = await query(
-        "SELECT nombre_categoria FROM categorias WHERE nombre_categoria = $1",
-        [categoryName]
-      );
-      if (verifyName.rowCount === 0) {
+      const verifyName = await isItExists("categorias","nombre_categoria",categoryName);
+      if (!verifyName) {
         //INSERT A NEW CATEGORY
         const addCategory = await query(
           "INSERT INTO categorias (nombre_categoria,descripcion,numero_orden) VALUES($1, $2, $3) RETURNING *",
