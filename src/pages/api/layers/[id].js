@@ -1,8 +1,9 @@
 import { query } from "../../../lib/db";
-import { areAllDataFilled } from "../utils/validations";
+import { areAllDataFilled, isItExists, fixSpaces } from "../utils/validations";
 
 export default async function handler(req, res) {
   let message;
+  let layer = null;
 
   //GET ELEMENT BY ID
 
@@ -11,10 +12,9 @@ export default async function handler(req, res) {
     if (isNaN(layerId)) {
       res.status(500).json({ error: "The id value is not valid" });
     } else {
-      const getLayerById = await query(
-        "SELECT * FROM capas WHERE id = $1",
-        [layerId]
-      );
+      const getLayerById = await query("SELECT * FROM capas WHERE id = $1", [
+        layerId,
+      ]);
       if (getLayerById.rowCount === 0) {
         res.status(500).json({ error: "This layer does not exist" });
       } else {
@@ -29,10 +29,9 @@ export default async function handler(req, res) {
     if (isNaN(layerId)) {
       res.status(500).json({ error: "The id value is not valid" });
     } else {
-      const deleteLayer = await query(
-        "DELETE FROM capas WHERE id = $1",
-        [layerId]
-      );
+      const deleteLayer = await query("DELETE FROM capas WHERE id = $1", [
+        layerId,
+      ]);
 
       const rowCount = deleteLayer.rowCount;
       if (rowCount > 0) {
@@ -46,24 +45,33 @@ export default async function handler(req, res) {
     }
   }
 
+  //UPDATE A LAYER
   if (req.method === "PUT") {
     const layerId = req.query.id;
 
     if (isNaN(layerId)) {
       res.status(500).json({ error: "The id value is not valid" });
     } else {
-      const { layerName, description, orderNumber,category } = req.body;
-     
+      const { description, orderNumber, category } = req.body;
+      let { layerName } = req.body;
+      //THIS DELETES THE EMPTY SPACES OF THE NAME
+      const fixedElements = fixSpaces([layerName]);
+      layerName = fixedElements[0];
 
-      //VERIFIES THAT THE LAYER DOES NOT EXISTS
-      const verifyName = await query(
-        "SELECT nombre_capa FROM capas WHERE nombre_capa = $1 AND id != $2",
-        [layerName, layerId]
-      );
       //VERIFIES IF DATA IS FILLED
-      if (areAllDataFilled ([layerName,orderNumber,category])) { //CALL A FUNCTION TO VERIFY DATA FROM THE BODY
+      if (areAllDataFilled([layerName, orderNumber, category])) {
+        //CALL A FUNCTION TO VERIFY DATA FROM THE BODY
 
-        if (verifyName.rowCount === 0) {
+        //VERIFIES THAT THE CATEGORY EXISTS
+
+        const categoryExists = await isItExists(
+          "categorias",
+          "nombre_categoria",
+          category,
+          layerId
+        );
+
+        if (categoryExists) {
           const updateLayer = await query(
             "UPDATE capas SET nombre_capa = $1, descripcion = $2, numero_orden = $3, categoria = $4 WHERE id = $5",
             [layerName, description, orderNumber, category, layerId]
@@ -81,21 +89,20 @@ export default async function handler(req, res) {
             nombre_capa: layerName,
             descripcion: description,
             numero_orden: orderNumber,
-            categoria:category
+            categoria: category,
           };
           res
             .status(200)
             .json({ response: { message: message, layer: layer } });
         } else {
-          res
-            .status(500)
-            .json({ error: "That layer already exists, could not update" });
+          res.status(500).json({ error: "That category does not exist" });
         }
       } else {
-        res.status(500).json({
-          error: "Be sure that description and order number are filled",
-        });
+        res
+          .status(500)
+          .json({ error: "Be sure that description and order number are filled" });
       }
+      
     }
   }
 }

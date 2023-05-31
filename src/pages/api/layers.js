@@ -1,5 +1,5 @@
 import { query } from "../../lib/db";
-import { areAllDataFilled, isItExists } from "./utils/validations";
+import { areAllDataFilled,isItExists,fixSpaces } from "./utils/validations";
 
 export default async function handler(req, res) {
   let message;
@@ -14,8 +14,13 @@ export default async function handler(req, res) {
   
   //CREATE A NEW LAYER
   else if (req.method === "POST") {
-    const { layerName, description, orderNumber,category } = req.body;
 
+    const { description, orderNumber,category } = req.body;
+    let { layerName } = req.body;
+    //THIS DELETES THE EMPTY SPACES OF THE NAME
+    const fixedElements = fixSpaces([layerName]);
+    layerName = fixedElements[0];
+    
     //VERIFIES THAT ALL INPUTS ARE FILLED
     if (areAllDataFilled([layerName,orderNumber,category])) {
 
@@ -57,7 +62,7 @@ export default async function handler(req, res) {
       }
     } else {
       res.status(500).json({
-        error: "Be sure that description and order number are filled",
+        error: "Be sure that description,order number and category are filled",
       });
       res.status(405).end();
     }

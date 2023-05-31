@@ -1,5 +1,5 @@
 import { query } from "../../../lib/db";
-import { areAllDataFilled } from "../utils/validations";
+import { areAllDataFilled,isItExists,fixSpaces } from "../utils/validations";
 
 export default async function handler(req, res) {
   let message;
@@ -49,21 +49,24 @@ export default async function handler(req, res) {
   if (req.method === "PUT") {
     const categoryId = req.query.id;
 
+    //VERIFIES IF ID INSERTED IS VALID
     if (isNaN(categoryId)) {
       res.status(500).json({ error: "The id value is not valid" });
     } else {
-      const { categoryName, description, orderNumber } = req.body;
-     
 
-      //VERIFIES THAT THE CATEGORY DOES NOT EXISTS
-      const verifyName = await query(
-        "SELECT nombre_categoria FROM categorias WHERE nombre_categoria = $1 AND id != $2",
-        [categoryName, categoryId]
-      );
+      const {description, orderNumber } = req.body;
+      let {categoryName} = req.body;
+
+      //THIS DELETES THE EMPTY SPACES OF THE NAME
+      const fixedElements = fixSpaces([categoryName]);
+      categoryName = fixedElements[0];
+    
       //VERIFIES IF DATA IS FILLED
       if (areAllDataFilled ([categoryName,orderNumber])) { //CALL A FUNCTION TO VERIFY DATA FROM THE BODY
 
-        if (verifyName.rowCount === 0) {
+       //VERIFIES IF NAME OF CATEGORY ALREADY EXISTS
+        const repeated = await isItExists("categorias","nombre_categoria",categoryName,categoryId);
+        if (!repeated) {
           const updateCategory = await query(
             "UPDATE categorias SET nombre_categoria = $1, descripcion = $2, numero_orden = $3 WHERE id = $4",
             [categoryName, description, orderNumber, categoryId]

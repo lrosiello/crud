@@ -1,5 +1,5 @@
 import { query } from "../../lib/db";
-import { areAllDataFilled, isItExists } from "./utils/validations";
+import { areAllDataFilled, isItExists , fixSpaces } from "./utils/validations";
 
 export default async function handler(req, res) {
   let message;
@@ -14,10 +14,15 @@ export default async function handler(req, res) {
   
   //CREATE A NEW CATEGORY
   else if (req.method === "POST") {
-    const { categoryName, description, orderNumber } = req.body;
+    const {description, orderNumber } = req.body;
+    let {categoryName} = req.body;
 
     //VERIFIES THAT ALL INPUTS ARE FILLED
     if (areAllDataFilled ([categoryName,orderNumber])) {
+
+      //THIS DELETES THE EMPTY SPACES OF THE NAME
+      const fixedElements = fixSpaces([categoryName]);
+      categoryName = fixedElements[0];
     
       //VERIFIES THAT THE CATEGORY DOES NOT EXISTS
       const verifyName = await isItExists("categorias","nombre_categoria",categoryName);
