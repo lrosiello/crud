@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       res.status(500).json({ error: "The id value is not valid" });
     } else {
 
-      const {description, orderNumber } = req.body;
+      const {description, orderNumber,available } = req.body;
       let {categoryName} = req.body;
 
       //THIS DELETES THE EMPTY SPACES OF THE NAME
@@ -62,14 +62,14 @@ export default async function handler(req, res) {
       categoryName = fixedElements[0];
     
       //VERIFIES IF DATA IS FILLED
-      if (areAllDataFilled ([categoryName,orderNumber])) { //CALL A FUNCTION TO VERIFY DATA FROM THE BODY
+      if (areAllDataFilled ([categoryName,orderNumber,available])) { //CALL A FUNCTION TO VERIFY DATA FROM THE BODY
 
        //VERIFIES IF NAME OF CATEGORY ALREADY EXISTS
         const repeated = await isItExists("categorias","nombre_categoria",categoryName,categoryId);
         if (!repeated) {
           const updateCategory = await query(
-            "UPDATE categorias SET nombre_categoria = $1, descripcion = $2, numero_orden = $3 WHERE id = $4",
-            [categoryName, description, orderNumber, categoryId]
+            "UPDATE categorias SET nombre_categoria = $1, descripcion = $2, numero_orden = $3, disponible = $4 WHERE id = $5",
+            [categoryName, description, orderNumber,available, categoryId]
           );
 
           const rowCount = updateCategory.rowCount;
@@ -84,6 +84,7 @@ export default async function handler(req, res) {
             nombre_categoria: categoryName,
             descripcion: description,
             numero_orden: orderNumber,
+            disponible: available,
           };
           res
             .status(200)
@@ -95,7 +96,7 @@ export default async function handler(req, res) {
         }
       } else {
         res.status(500).json({
-          error: "Be sure that description and order number are filled",
+          error: "Be sure that description and order number, even (available) are filled",
         });
       }
     }

@@ -52,14 +52,14 @@ export default async function handler(req, res) {
     if (isNaN(layerId)) {
       res.status(500).json({ error: "The id value is not valid" });
     } else {
-      const { description, orderNumber, category } = req.body;
+      const { description, orderNumber, category,available } = req.body;
       let { layerName } = req.body;
       //THIS DELETES THE EMPTY SPACES OF THE NAME
       const fixedElements = fixSpaces([layerName]);
       layerName = fixedElements[0];
 
       //VERIFIES IF DATA IS FILLED
-      if (areAllDataFilled([layerName, orderNumber, category])) {
+      if (areAllDataFilled([layerName, orderNumber, category ,available])) {
         //CALL A FUNCTION TO VERIFY DATA FROM THE BODY
 
         //VERIFIES THAT THE CATEGORY EXISTS
@@ -73,8 +73,8 @@ export default async function handler(req, res) {
 
         if (categoryExists) {
           const updateLayer = await query(
-            "UPDATE capas SET nombre_capa = $1, descripcion = $2, numero_orden = $3, categoria = $4 WHERE id = $5",
-            [layerName, description, orderNumber, category, layerId]
+            "UPDATE capas SET nombre_capa = $1, descripcion = $2, numero_orden = $3, categoria = $4, disponible = $5 WHERE id = $6",
+            [layerName, description, orderNumber, category, available, layerId]
           );
 
           const rowCount = updateLayer.rowCount;
@@ -90,6 +90,7 @@ export default async function handler(req, res) {
             descripcion: description,
             numero_orden: orderNumber,
             categoria: category,
+            disponible: available,
           };
           res
             .status(200)
@@ -100,7 +101,7 @@ export default async function handler(req, res) {
       } else {
         res
           .status(500)
-          .json({ error: "Be sure that description and order number are filled" });
+          .json({ error: "Be sure that description,order number, category and available are filled" });
       }
       
     }

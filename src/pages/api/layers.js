@@ -15,14 +15,14 @@ export default async function handler(req, res) {
   //CREATE A NEW LAYER
   else if (req.method === "POST") {
 
-    const { description, orderNumber,category } = req.body;
+    const { description, orderNumber,category,available } = req.body;
     let { layerName } = req.body;
     //THIS DELETES THE EMPTY SPACES OF THE NAME
     const fixedElements = fixSpaces([layerName]);
     layerName = fixedElements[0];
     
     //VERIFIES THAT ALL INPUTS ARE FILLED
-    if (areAllDataFilled([layerName,orderNumber,category])) {
+    if (areAllDataFilled([layerName,orderNumber,category,available])) {
 
       //VERIFIES THAT THE CATEGORY EXISTS
    
@@ -31,8 +31,8 @@ export default async function handler(req, res) {
       if (categoryExists) {
         //INSERT A NEW LAYER
         const addLayer = await query(
-          "INSERT INTO capas (nombre_capa,descripcion,numero_orden,categoria) VALUES($1, $2, $3, $4) RETURNING *",
-          [layerName, description, orderNumber, category]
+          "INSERT INTO capas (nombre_capa,descripcion,numero_orden,categoria,disponible) VALUES($1, $2, $3, $4, $5) RETURNING *",
+          [layerName, description, orderNumber, category, available]
         );
         //IT TAKES DATA FROM THE LAYER ADDED
         if (addLayer.rowCount > 0) {
@@ -44,7 +44,8 @@ export default async function handler(req, res) {
               nombre_capa: layerName,
               descripcion: description,
               numero_orden: orderNumber,
-              categoria:category
+              categoria:category,
+              disponible:available,
             };
           } else {
             message = "error";
@@ -62,7 +63,7 @@ export default async function handler(req, res) {
       }
     } else {
       res.status(500).json({
-        error: "Be sure that description,order number and category are filled",
+        error: "Be sure that description,order number, category and available are filled",
       });
       res.status(405).end();
     }

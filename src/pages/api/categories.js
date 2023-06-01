@@ -14,11 +14,11 @@ export default async function handler(req, res) {
   
   //CREATE A NEW CATEGORY
   else if (req.method === "POST") {
-    const {description, orderNumber } = req.body;
+    const {description, orderNumber, available } = req.body;
     let {categoryName} = req.body;
 
     //VERIFIES THAT ALL INPUTS ARE FILLED
-    if (areAllDataFilled ([categoryName,orderNumber])) {
+    if (areAllDataFilled ([categoryName,orderNumber,available])) {
 
       //THIS DELETES THE EMPTY SPACES OF THE NAME
       const fixedElements = fixSpaces([categoryName]);
@@ -29,8 +29,8 @@ export default async function handler(req, res) {
       if (!verifyName) {
         //INSERT A NEW CATEGORY
         const addCategory = await query(
-          "INSERT INTO categorias (nombre_categoria,descripcion,numero_orden) VALUES($1, $2, $3) RETURNING *",
-          [categoryName, description, orderNumber]
+          "INSERT INTO categorias (nombre_categoria,descripcion,numero_orden,disponible) VALUES($1, $2, $3, $4) RETURNING *",
+          [categoryName, description, orderNumber, available]
         );
         //IT TAKES DATA FROM THE CATEGORY ADDED
         if (addCategory.rowCount > 0) {
@@ -42,6 +42,7 @@ export default async function handler(req, res) {
               nombre_categoria: categoryName,
               descripcion: description,
               numero_orden: orderNumber,
+              disponible: available,
             };
           } else {
             message = "error";
@@ -59,7 +60,7 @@ export default async function handler(req, res) {
       }
     } else {
       res.status(500).json({
-        error: "Be sure that description and order number are filled",
+        error: "Be sure that description and order number, even (available) are filled",
       });
       res.status(405).end();
     }
