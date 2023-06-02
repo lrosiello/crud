@@ -1,5 +1,7 @@
 import { query } from "../../lib/db";
 import { areAllDataFilled, isItExists, fixSpaces } from "./utils/validations";
+const bcrypt = require('bcrypt');
+
 
 export default async function handler(req, res) {
   let message;
@@ -28,9 +30,14 @@ export default async function handler(req, res) {
       const verifyEmail = await isItExists("usuarios", "email", fixedEmail);
       if (!verifyEmail) {
         // INSERT A NEW USER
+
+        // crypt password
+        const saltRounds = 10; 
+        const hashedPassword = await bcrypt.hash(pass, saltRounds);
+
         const addUser = await query(
           "INSERT INTO usuarios (nombre, apellido, email, pass) VALUES($1, $2, $3, $4) RETURNING *",
-          [fixedNombre, fixedApellido, fixedEmail, pass]
+          [fixedNombre, fixedApellido, fixedEmail, hashedPassword]
         );
 
         // GET DATA FROM THE USER ADDED
@@ -43,7 +50,6 @@ export default async function handler(req, res) {
               nombre: fixedNombre,
               apellido: fixedApellido,
               email: fixedEmail,
-              pass: pass,
             };
           } else {
             message = "error";
