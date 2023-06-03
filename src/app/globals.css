@@ -100,6 +100,16 @@ a {
   text-decoration: none;
 }
 
+.nav-item:hover{
+  background-color: #123456!important;
+  color: #fedcba;
+}
+.rs-nav-item-active{
+  background-color: #123456!important;
+  color: #fedcba;
+}
+
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
