@@ -9,7 +9,10 @@ export default function Categories() {
   async function getCategories() {
     const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/categories`);
     const response = await res.json();
-    setCategories(response.categories.rows);
+    const sortedCategories = response.categories.rows.sort(
+      (a, b) => a.numero_orden - b.numero_orden
+    );
+    setCategories(sortedCategories);
   }
 
   useEffect(() => {
@@ -26,25 +29,62 @@ export default function Categories() {
     },
     {
       dataKey: "nombre_categoria",
-      header: "Nombre Categoría",
+      header: "Category name",
       width: 100,
       fixed: true,
     },
     {
       dataKey: "descripcion",
-      header: "Descripción",
+      header: "Description",
       width: 100,
     },
     {
       dataKey: "numero_orden",
-      header: "Número de Orden",
+      header: "Order number",
       width: 200,
     },
   ];
 
+  const refreshCategories = async () => {
+    await getCategories();
+  };
+
+  const deleteCategory = async (id, getCategories) => {
+    try {
+      // Request to the server
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_URL}/api/categories/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      // Verifies if it worked
+      if (res.status === 200) {
+        console.log("Deleting was successful", id);
+        // Render table again
+        getCategories(); // Invoking getCategories to update the categories list
+      } else {
+        console.log("Error eliminating: ", id);
+      }
+    } catch (error) {
+      console.error("Error eliminating: ", error);
+    }
+  };
+
   return (
     <div>
-      <MainContainer page={<Tables data={categories} columns={columns} />} />
+      <MainContainer
+        page={
+          <Tables
+            data={categories}
+            columns={columns}
+            refresh={refreshCategories}
+            onDelete={deleteCategory}
+          />
+        }
+      />
     </div>
   );
 }
+
+

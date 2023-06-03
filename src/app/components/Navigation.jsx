@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Nav, Dropdown } from "rsuite";
+import { Nav } from "rsuite";
 
 const links = [
   {
@@ -22,11 +22,11 @@ const links = [
 
 export default function Navigation() {
   return (
-    <Nav appearance="subtle" activeKey={window.location.pathname}>
+    <Nav appearance="subtle" activeKey={window.location.pathname} marginBottom={5}>
       {links.map(({ label, route }) => (
         <Nav.Item key={route} eventKey={route} className="nav-item">
           <Link href={route} color="inherit"  >
-          <p style={{ color: "whitesmoke" }}>{label}</p>
+          <h6 style={{ color: "whitesmoke" }}>{label}</h6>
           </Link>
         </Nav.Item>
       ))}

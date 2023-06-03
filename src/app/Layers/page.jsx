@@ -9,7 +9,10 @@ export default function Layers() {
   async function getLayers() {
     const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/layers`);
     const response = await res.json();
-    setLayers(response.layers.rows);
+    const sortedLayers = response.layers.rows.sort(
+      (a, b) => a.numero_orden - b.numero_orden
+    );
+    setLayers(sortedLayers);
   }
 
   useEffect(() => {
@@ -26,32 +29,67 @@ export default function Layers() {
     },
     {
       dataKey: "nombre_capa",
-      header: "Nombre Capa",
+      header: "Layer name",
       width: 100,
       fixed: true,
     },
     {
       dataKey: "descripcion",
-      header: "Descripción",
+      header: "Description",
       width: 100,
     },
     {
       dataKey: "numero_orden",
-      header: "Número de Orden",
+      header: "Order number",
       width: 200,
     },
     {
-        dataKey: "categoria",
-        header: "Categoria",
-        width: 200,
-      },
+      dataKey: "categoria",
+      header: "Category",
+      width: 200,
+    },
     // Additional columns specific to layers
     // ...
   ];
 
+  const refreshLayers = async () => {
+    await getLayers();
+  };
+
+  const deleteLayer = async (id, getLayers) => {
+    try {
+      // Request to the server
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_URL}/api/layers/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      // Verifies if it worked
+      if (res.status === 200) {
+        console.log("Deleting was successful", id);
+        // Render table again
+        getLayers(); // Invoking getLayers to update the layers list
+      } else {
+        console.log("Error eliminating: ", id);
+      }
+    } catch (error) {
+      console.error("Error eliminating: ", error);
+    }
+  };
+
   return (
     <div>
-      <MainContainer page={<Tables data={layers} columns={columns} />} />
+      <MainContainer
+        page={
+          <Tables
+            data={layers}
+            columns={columns}
+            refresh={refreshLayers}
+            onDelete={deleteLayer}
+          />
+        }
+      />
     </div>
   );
 }
