@@ -19,6 +19,21 @@ export default function Layers() {
     getLayers();
   }, []);
 
+  const [categories, setCategories] = useState([]);
+
+  async function getCategories() {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/categories`);
+    const response = await res.json();
+    const sortedCategories = response.categories.rows.sort(
+      (a, b) => a.numero_orden - b.numero_orden
+    );
+    setCategories(sortedCategories);
+  }
+
+  useEffect(() => {
+    getCategories();
+  }, []);
+
   const columns = [
     {
       dataKey: "id",
@@ -87,7 +102,9 @@ export default function Layers() {
             columns={columns}
             refresh={refreshLayers}
             onDelete={deleteLayer}
-          />
+            categories={categories}
+            isCategoryTable={false}
+          />  
         }
       />
     </div>

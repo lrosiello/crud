@@ -1,16 +1,31 @@
 import React, { useState } from "react";
-import { Table, Pagination, Button } from "rsuite";
+import { Table, Pagination, Button, Message } from "rsuite";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import Confirmation from "./Confirmation";
+import EditForm from "./EditForm";
 
 const { Column, HeaderCell, Cell } = Table;
 
-const Tables = ({ data, columns, refresh, onDelete }) => {
+const Tables = ({
+  data,
+  columns,
+  refresh,
+  onDelete,
+  categories,
+  isCategoryTable,
+}) => {
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
+
+  const [showMessage, setShowMessage] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("info");
+
+  const [formData, setFormData] = useState(null);
 
   const handleChangeLimit = (dataKey) => {
     setPage(1);
@@ -37,12 +52,41 @@ const Tables = ({ data, columns, refresh, onDelete }) => {
     setShowConfirmation(false);
   };
 
-  const handleEdit = (id) => {
-    console.log("Editar elemento con ID:", id);
+  const handleEdit = (item) => {
+    // Verificar si el campo 'categoria' existe en los datos del item
+    const formData = isCategoryTable ? item : { ...item, categoria: null };
+    setFormData(formData);
+    setShowEditForm(true);
+  };
+
+  const handleUpdate = async (updatedData) => {
+    // Update logic goes here
+    console.log("Updated Data:", updatedData);
+    // You can make an API request to update the data on the server
+    // ...
+    setShowEditForm(false);
+    setMessage("Item updated successfully.");
+    setMessageType("success");
+    setShowMessage(true);
+    refresh();
+  };
+
+  const handleCancelEdit = () => {
+    setShowEditForm(false);
+    setFormData(null);
   };
 
   return (
     <div className="table-container" style={{ marginTop: 2 }}>
+      {showMessage && (
+        <Message
+          showIcon
+          type={messageType}
+          description={message}
+          closable
+          onClose={() => setShowMessage(false)}
+        />
+      )}
       <Table height={420} data={filteredData} className="responsive-table">
         {columns.map((column) => {
           return (
@@ -68,12 +112,9 @@ const Tables = ({ data, columns, refresh, onDelete }) => {
             }}
           >
             {(rowData) => (
-              <Button
-                appearance="subtle"
-                onClick={() => handleEdit(rowData.id)}
-              >
+              <Button appearance="subtle" onClick={() => handleEdit(rowData)}>
                 <EditIcon
-                  onClick={() => handleEdit(rowData.id)}
+                  onClick={() => handleEdit(rowData)}
                   style={{ cursor: "pointer" }}
                 />
               </Button>
@@ -111,6 +152,15 @@ const Tables = ({ data, columns, refresh, onDelete }) => {
         handleDelete={handleDelete}
         handleCancelDelete={handleCancelDelete}
       />
+      {showEditForm && (
+        <EditForm
+          data={formData}
+          categories={categories}
+          isCategoryForm={isCategoryTable}
+          handleUpdate={handleUpdate}
+          handleCancel={handleCancelEdit}
+        />
+      )}
       <div
         style={{
           padding: 20,

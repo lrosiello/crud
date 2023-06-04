@@ -80,6 +80,7 @@ export default function Categories() {
             columns={columns}
             refresh={refreshCategories}
             onDelete={deleteCategory}
+            isCategoryTable={true}
           />
         }
       />
