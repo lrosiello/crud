@@ -8,103 +8,110 @@ import {
 } from "@mui/material";
 import "../styles/EditForm.css";
 
-const EditForm = ({ data, categories, handleUpdate, handleCancel }) => {
+const columnLabels = {
+  categories: {
+    nombre_categoria: "Name",
+    descripcion: "Description",
+    numero_orden: "Order Number",
+  },
+  layers: {
+    nombre_capa: "Name",
+    descripcion: "Description",
+    numero_orden: "Order Number",
+  },
+};
+
+const EditForm = ({
+  data,
+  categories,
+  handleUpdate,
+  handleCancel,
+  isCategoryForm,
+}) => {
   const [formData, setFormData] = useState(data);
+  let tableSelected;
+  if (isCategoryForm) {
+    tableSelected = "categories";
+  } else {
+    tableSelected = "layers";
+  }
+  console.log(formData);
 
   const handleFieldChange = (fieldName, value) => {
-    if (fieldName === "available" && value === "") {
-      // IF USER DID NOT SELECTED THE AVAILABLE
-      value = true;
-    }
     setFormData((prevData) => ({
       ...prevData,
       [fieldName]: value,
     }));
   };
-  
-  
+
   const handleSubmit = async () => {
     try {
-      // Realizar solicitud PUT a la API
-      const response = await fetch(`/api/categories/${data.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      let format;
+  
+      if (isCategoryForm) {
+        format = {
           categoryName: formData.nombre_categoria,
           description: formData.descripcion,
           orderNumber: formData.numero_orden,
           available: formData.disponible,
-          // Asegúrate de incluir otros campos si es necesario
-        }),
+        };
+      } else {
+        format = {
+          layerName: formData.nombre_capa,
+          description: formData.descripcion,
+          orderNumber: formData.numero_orden,
+          category: formData.categoria,
+          available: formData.disponible,
+        };
+      }
+  
+      const url = `${process.env.NEXT_PUBLIC_URL}/api/${tableSelected}/${data.id}`;
+      console.log(format)
+      console.log(url)
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(format),
       });
-      console.log(formData)
+  
       if (response.ok) {
-        // Actualizar la categoría en la base de datos fue exitoso
-        
         handleUpdate(formData);
       } else {
-        // Manejar el caso de error en la solicitud de actualización
-        console.error("Error updating category:", response.status);
-        // Mostrar un mensaje de error si es necesario
+        console.error(`Error updating ${tableSelected}:`, response.status);
       }
     } catch (error) {
-      console.error("Error updating category:", error);
-      // Mostrar un mensaje de error si es necesario
+      console.error(`Error updating ${tableSelected}:`, error);
     }
   };
-  
-  
 
   return (
     <Dialog open={true} onClose={handleCancel}>
-      <DialogTitle style={{ backgroundColor: "#2e3a3ca7", boxShadow: '0 2px 4px rgba(110, 105, 105, 0.493)' }}>Edit Item</DialogTitle>
+      <DialogTitle
+        style={{
+          backgroundColor: "#2e3a3ca7",
+          boxShadow: "0 2px 4px rgba(110, 105, 105, 0.493)",
+        }}
+      >
+        Edit Item
+      </DialogTitle>
       <DialogContent style={{ backgroundColor: "#5b798463", paddingTop: 10 }}>
         <form className="edit-form">
-          <div className="form-group">
-            <label className="label">Name</label>
-            <input
-              className="input-field"
-              type="text"
-              value={formData.nombre_categoria || ""}
-              onChange={(e) =>
-                handleFieldChange("nombre_categoria", e.target.value)
-              }
-            />
-          </div>
-          <div className="form-group">
-            <label className="label">Description</label>
-            <input
-              className="input-field"
-              type="text"
-              value={formData.descripcion || ""}
-              onChange={(e) => handleFieldChange("descripcion", e.target.value)}
-            />
-          </div>
-          <div className="form-group">
-            <label className="label">Order Number</label>
-            <input
-              className="input-field"
-              type="text"
-              value={formData.numero_orden || ""}
-              onChange={(e) =>
-                handleFieldChange("numero_orden", e.target.value)
-              }
-            />
-          </div>
-          <div className="form-group">
-            <label className="label">Available</label>
-            <select
-              className="select-field"
-              value={formData.disponible}
-              onChange={(e) => handleFieldChange("disponible", e.target.value)}
-            >
-              <option value={true}>True</option>
-              <option value={false}>False</option>
-            </select>
-          </div>
-          {categories && categories.length > 0 && (
+          {Object.keys(columnLabels[tableSelected]).map((column) => (
+            <div className="form-group" key={column}>
+              <label className="label">
+                {columnLabels[tableSelected][column]}
+              </label>
+              <input
+                className="input-field"
+                type="text"
+                value={formData[column] || ""}
+                onChange={(e) => handleFieldChange(column, e.target.value)}
+              />
+            </div>
+          ))}
+          {!isCategoryForm && categories && categories.length > 0 && (
             <div className="form-group">
               <label className="label">Category</label>
               <select
@@ -113,19 +120,51 @@ const EditForm = ({ data, categories, handleUpdate, handleCancel }) => {
                 onChange={(e) => handleFieldChange("categoria", e.target.value)}
               >
                 {categories.map((category) => (
-                  <option
-                    key={category.id}
-                    value={category.nombre_categoria}
-                  >
+                  <option key={category.id} value={category.nombre_categoria}>
                     {category.nombre_categoria}
                   </option>
                 ))}
               </select>
             </div>
           )}
+          {!isCategoryForm && (
+            <div className="form-group">
+              <label className="label">Available</label>
+              <select
+                className="select-field"
+                value={formData.disponible}
+                onChange={(e) =>
+                  handleFieldChange("disponible", e.target.value === "true")
+                }
+              >
+                <option value={true}>True</option>
+                <option value={false}>False</option>
+              </select>
+            </div>
+          )}
+          {isCategoryForm && (
+            <div className="form-group">
+              <label className="label">Available</label>
+              <select
+                className="select-field"
+                value={formData.disponible}
+                onChange={(e) =>
+                  handleFieldChange("disponible", e.target.value === "true")
+                }
+              >
+                <option value={true}>True</option>
+                <option value={false}>False</option>
+              </select>
+            </div>
+          )}
         </form>
       </DialogContent>
-      <DialogActions style={{ backgroundColor: "#2e3a3ca7", boxShadow: '0 -2px 4px rgba(110, 105, 105, 0.493)' }}>
+      <DialogActions
+        style={{
+          backgroundColor: "#2e3a3ca7",
+          boxShadow: "0 -2px 4px rgba(110, 105, 105, 0.493)",
+        }}
+      >
         <Button onClick={handleSubmit} variant="contained" color="secondary">
           Update
         </Button>
