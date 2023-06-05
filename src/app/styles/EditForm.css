@@ -25,3 +25,26 @@
     margin-right: 10px;
     text-align: right;
   }
+
+  .error-message {
+    display: flex;
+    justify-content: center;
+    color: red;
+    margin-bottom: 5px;
+    text-align: center;
+    padding-top: 2px;
+  }
+  
+  .error-text {
+    color: red;
+    margin-top: 4px;
+  }
+  
+  .message-container {
+    background-color: lightgreen;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+  }
+  

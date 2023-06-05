@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, Pagination, Button, Message } from "rsuite";
+import { Table, Pagination, Button } from "rsuite";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import Confirmation from "./Confirmation";
@@ -21,11 +21,14 @@ const Tables = ({
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
 
-  const [showMessage, setShowMessage] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("info");
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const [formData, setFormData] = useState(null);
+
+  
 
   const handleChangeLimit = (dataKey) => {
     setPage(1);
@@ -44,8 +47,16 @@ const Tables = ({
   };
 
   const handleDelete = async () => {
-    await onDelete(selectedItemId, refresh);
-    setShowConfirmation(false);
+    try {
+      await onDelete(selectedItemId, refresh);
+      setShowConfirmation(false);
+      setSuccessMessage("The element has been deleted successfully.");
+      setShowSuccessMessage(true);
+    } catch (error) {
+      // Handle API error
+      setErrorMessage(error.response.data.error || "An error occurred.");
+      setShowErrorMessage(true);
+    }
   };
 
   const handleCancelDelete = () => {
@@ -60,15 +71,23 @@ const Tables = ({
   };
 
   const handleUpdate = async (updatedData) => {
-    // Update logic goes here
-    console.log("Updated Data:", updatedData);
-    // You can make an API request to update the data on the server
-    // ...
-    setShowEditForm(false);
-    setMessage("Item updated successfully.");
-    setMessageType("success");
-    setShowMessage(true);
-    refresh();
+    try {
+      // Update logic goes here
+      console.log("Updated Data:", updatedData);
+      // You can make an API request to update the data on the server
+      // ...
+
+      setShowEditForm(false);
+      setSuccessMessage("Item updated successfully.");
+      setErrorMessage(null);
+      setShowSuccessMessage(true); // Show success message
+      refresh();
+    } catch (error) {
+      // Handle API error
+      console.error(`Error updating item:`, error);
+      setErrorMessage(error.message || "An error occurred.");
+      setSuccessMessage(null);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -76,16 +95,22 @@ const Tables = ({
     setFormData(null);
   };
 
+  const handleCloseMessage = () => {
+    setShowSuccessMessage(false);
+  };
+
   return (
     <div className="table-container" style={{ marginTop: 2 }}>
-      {showMessage && (
-        <Message
-          showIcon
-          type={messageType}
-          description={message}
-          closable
-          onClose={() => setShowMessage(false)}
-        />
+      {showSuccessMessage && (
+         <div
+         className="message-popup message-success message-container"
+         onClick={handleCloseMessage}
+         style={{ backgroundColor: "lightgreen" }} 
+       >
+         <span className="message-text">{successMessage}</span>
+         <span className="message-close" style={{ marginLeft: "auto", cursor: "pointer" }}>X</span>
+       </div>
+       
       )}
       <Table height={420} data={filteredData} className="responsive-table">
         {columns.map((column) => {
@@ -159,6 +184,7 @@ const Tables = ({
           isCategoryForm={isCategoryTable}
           handleUpdate={handleUpdate}
           handleCancel={handleCancelEdit}
+          selectedCategory={formData.categoria}
         />
       )}
       <div
