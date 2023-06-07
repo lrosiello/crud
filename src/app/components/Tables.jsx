@@ -12,7 +12,7 @@ const Tables = ({
   columns,
   refresh,
   onDelete,
-  categories,
+
   isCategoryTable,
 }) => {
   const [limit, setLimit] = useState(10);
@@ -64,27 +64,19 @@ const Tables = ({
   };
 
   const handleEdit = (item) => {
-    // Verificar si el campo 'categoria' existe en los datos del item
-    const formData = isCategoryTable ? item : { ...item, categoria: null };
+    const formData = isCategoryTable ? item : { ...item};
     setFormData(formData);
     setShowEditForm(true);
   };
 
-  const handleUpdate = async (updatedData) => {
+  const handleUpdate = async () => {
     try {
-      // Update logic goes here
-      console.log("Updated Data:", updatedData);
-      // You can make an API request to update the data on the server
-      // ...
-
       setShowEditForm(false);
       setSuccessMessage("Item updated successfully.");
       setErrorMessage(null);
       setShowSuccessMessage(true); // Show success message
       refresh();
     } catch (error) {
-      // Handle API error
-      console.error(`Error updating item:`, error);
       setErrorMessage(error.message || "An error occurred.");
       setSuccessMessage(null);
     }
@@ -110,14 +102,13 @@ const Tables = ({
          <span className="message-text">{successMessage}</span>
          <span className="message-close" style={{ marginLeft: "auto", cursor: "pointer" }}>X</span>
        </div>
-       
       )}
+
       <Table height={420} data={filteredData} className="responsive-table">
         {columns.map((column) => {
           return (
             <Column
               key={column.dataKey}
-              width={column.width + 30}
               align={column.align}
               fixed={column.fixed}
             >
@@ -186,6 +177,7 @@ const Tables = ({
           handleCancel={handleCancelEdit}
           selectedCategory={formData.categoria}
         />
+        
       )}
       <div
         style={{

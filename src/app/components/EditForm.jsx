@@ -147,18 +147,22 @@ const EditForm = ({
             {!isCategoryForm && categories && categories.length > 0 && (
               <div className="form-group">
                 <label className="label">Category</label>
+                
                 <select
                   className="select-field"
                   value={formData.categoria}
-                  onChange={(e) =>
-                    handleFieldChange("categoria", e.target.value)
-                  }
+                  onChange={(e) =>{
+                    handleFieldChange("categoria", e.target.value);
+                    console.log(formData.categoria); // Agregar el console.log aquí
+                  }}
+                  
                 >
                   {categories.map((category) => (
                     <option key={category.id} value={category.nombre_categoria}>
                       {category.nombre_categoria}
                     </option>
                   ))}
+                  
                 </select>
               </div>
             )}

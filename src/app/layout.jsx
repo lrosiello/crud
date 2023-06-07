@@ -2,8 +2,11 @@ import "./globals.css";
 import styles from "./page.module.css";
 
 import { Inter } from "next/font/google";
+import Header from "./components/Header"
+import Login from "./Login/page"
 
 import "rsuite/dist/rsuite.min.css";
+import { Footer } from "rsuite";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,7 +21,10 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
         <div className={styles.main}>
+          <Header/>
+           {/*Este login falta hacer autenticacion  <Login/>, el children se abre con la condicion de autenticacion envolviendo login y children*/}
           {children}
+       
         </div>
       </body>
     </html>

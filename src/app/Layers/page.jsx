@@ -2,37 +2,25 @@
 import React, { useEffect, useState } from "react";
 import Tables from "../components/Tables";
 import MainContainer from "../components/MainContainer";
+import {getLayers, deleteLayer} from "../services/apiCalls";
 
 export default function Layers() {
   const [layers, setLayers] = useState([]);
 
-  async function getLayers() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/layers`);
-    const response = await res.json();
-    const sortedLayers = response.layers.rows.sort(
-      (a, b) => a.numero_orden - b.numero_orden
-    );
-    setLayers(sortedLayers);
-  }
 
   useEffect(() => {
-    getLayers();
+    fetchLayers();
   }, []);
 
-  const [categories, setCategories] = useState([]);
+  const fetchLayers = async () => {
+    const layers = await getLayers();
+    setLayers(layers);
+  };
 
-  async function getCategories() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/categories`);
-    const response = await res.json();
-    const sortedCategories = response.categories.rows.sort(
-      (a, b) => a.numero_orden - b.numero_orden
-    );
-    setCategories(sortedCategories);
-  }
-
-  useEffect(() => {
-    getCategories();
-  }, []);
+  const deleting = async (id) => {
+    await deleteLayer(id);
+    fetchLayers(); // Update layers after deleting
+  };
 
   const columns = [
     {
@@ -67,32 +55,7 @@ export default function Layers() {
     // ...
   ];
 
-  const refreshLayers = async () => {
-    await getLayers();
-  };
-
-  const deleteLayer = async (id, getLayers) => {
-    try {
-      // Request to the server
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_URL}/api/layers/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      // Verifies if it worked
-      if (res.status === 200) {
-        console.log("Deleting was successful", id);
-        // Render table again
-        getLayers(); // Invoking getLayers to update the layers list
-      } else {
-        console.log("Error eliminating: ", id);
-      }
-    } catch (error) {
-      console.error("Error eliminating: ", error);
-    }
-  };
-
+  
   return (
     <div>
       <MainContainer
@@ -100,9 +63,8 @@ export default function Layers() {
           <Tables
             data={layers}
             columns={columns}
-            refresh={refreshLayers}
-            onDelete={deleteLayer}
-            categories={categories}
+            onDelete={deleting}
+         
             isCategoryTable={false}
           />  
         }

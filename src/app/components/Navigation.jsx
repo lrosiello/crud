@@ -26,6 +26,7 @@ const links = [
 
 export default function Navigation() {
   const [showForm, setShowForm] = useState(false);
+  
   const handleNewItemClick = () => {
     setShowForm(true);
   };

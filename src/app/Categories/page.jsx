@@ -2,22 +2,24 @@
 import React, { useEffect, useState } from "react";
 import Tables from "../components/Tables";
 import MainContainer from "../components/MainContainer";
+import {getCategories, deleteCategory} from "../services/apiCalls";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
 
-  async function getCategories() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/categories`);
-    const response = await res.json();
-    const sortedCategories = response.categories.rows.sort(
-      (a, b) => a.numero_orden - b.numero_orden
-    );
-    setCategories(sortedCategories);
-  }
-
   useEffect(() => {
-    getCategories();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    const categories = await getCategories();
+    setCategories(categories);
+  };
+
+  const deleting = async (id) => {
+    await deleteCategory(id);
+    fetchCategories(); // Update categories after deleting
+  };
 
   const columns = [
     {
@@ -45,31 +47,9 @@ export default function Categories() {
     },
   ];
 
-  const refreshCategories = async () => {
-    await getCategories();
-  };
 
-  const deleteCategory = async (id, getCategories) => {
-    try {
-      // Request to the server
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_URL}/api/categories/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      // Verifies if it worked
-      if (res.status === 200) {
-        console.log("Deleting was successful", id);
-        // Render table again
-        getCategories(); // Invoking getCategories to update the categories list
-      } else {
-        console.log("Error eliminating: ", id);
-      }
-    } catch (error) {
-      console.error("Error eliminating: ", error);
-    }
-  };
+
+
 
   return (
     <div>
@@ -78,8 +58,7 @@ export default function Categories() {
           <Tables
             data={categories}
             columns={columns}
-            refresh={refreshCategories}
-            onDelete={deleteCategory}
+            onDelete={deleting}
             isCategoryTable={true}
           />
         }
