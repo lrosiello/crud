@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { Nav } from "rsuite";
-import NewForm from "../components/NewForm";
-import { useState } from "react";
-import AddIcon from '@mui/icons-material/Add';
-import { IconButton } from "@mui/material";
+
 
 const links = [
   {
@@ -25,11 +22,6 @@ const links = [
 ];
 
 export default function Navigation() {
-  const [showForm, setShowForm] = useState(false);
-  
-  const handleNewItemClick = () => {
-    setShowForm(true);
-  };
 
  
 
@@ -43,13 +35,9 @@ export default function Navigation() {
             </Link>
           </Nav.Item>
         ))}
-        <Nav.Item className="nav-item"  style={{textJustify:"flex-end"}}>
-          <IconButton onClick={handleNewItemClick}>
-          <AddIcon style={{ color: "whitesmoke", fontSize: 40 }} />
-          </IconButton>
-        </Nav.Item>
+  
       </Nav>
-      {showForm && <NewForm handleCancel={() => setShowForm(false)} />}
+
     </>
   );
 }

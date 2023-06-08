@@ -1,6 +1,6 @@
 import React from 'react';
-import { Container, Header, Content, Footer, Navbar, Nav } from 'rsuite';
-import Navigation from './Navigation';
+import { Container, Content } from 'rsuite';
+
 
 export default function MainContainer({ page }) {
   return (

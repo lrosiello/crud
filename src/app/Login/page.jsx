@@ -1,6 +1,7 @@
 "use client"
 import React from "react";
 import MainContainer from "../components/MainContainer";
+import { IconButton ,AddIcon} from "rsuite";
 
 export default function LoginPage() {
 
@@ -13,8 +14,11 @@ export default function LoginPage() {
 
 
   return (
-     
+    <>
+  
       <MainContainer page={login} />
+    </>
+    
    
   );
 }

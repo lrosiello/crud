@@ -1,15 +1,25 @@
-"use client";
+"use client"
 import React, { useEffect, useState } from "react";
 import Tables from "../components/Tables";
 import MainContainer from "../components/MainContainer";
-import {getLayers, deleteLayer} from "../services/apiCalls";
+import { getLayers, deleteLayer, getCategories } from "../services/apiCalls";
+import AddIcon from "@mui/icons-material/Add";
+import { IconButton } from "@mui/material";
+import EditForm from "../components/EditForm";
 
 export default function Layers() {
   const [layers, setLayers] = useState([]);
-
+  const [categories, setCategories] = useState([]);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      const categories = await getCategories();
+      setCategories(categories);
+    };
+
     fetchLayers();
+    fetchCategories();
   }, []);
 
   const fetchLayers = async () => {
@@ -55,18 +65,45 @@ export default function Layers() {
     // ...
   ];
 
-  
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleNewItemClick = () => {
+    setShowForm(true);
+    setIsCreating(true);
+  };
+  const handleCreateItem = () => {
+    setShowForm(false);
+    fetchLayers();
+  };
+
+
   return (
     <div>
       <MainContainer
         page={
-          <Tables
-            data={layers}
-            columns={columns}
-            onDelete={deleting}
-         
-            isCategoryTable={false}
-          />  
+          <>
+            <div style={{ display: "flex", flexDirection: "row" }}>
+              <IconButton onClick={handleNewItemClick}>
+                <AddIcon style={{ color: "whitesmoke", fontSize: 40 }} />
+              </IconButton>
+              <h3 style={{ alignSelf: "center", marginLeft: 5 }}>
+                Add New Layer
+              </h3>
+            </div>
+
+            <Tables
+              data={layers}
+              columns={columns}
+              onDelete={deleting}
+              categories={categories}
+              isCategoryTable={false}
+              refresh={fetchLayers}
+            />
+            {showForm && <EditForm data={{}} categories={categories} 
+            isCategoryForm={false} isCreateForm={true} 
+            handleCreate={handleCreateItem}
+            handleCancel={() => setShowForm(false)} />}
+          </>
         }
       />
     </div>

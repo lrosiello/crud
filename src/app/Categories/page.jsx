@@ -2,10 +2,14 @@
 import React, { useEffect, useState } from "react";
 import Tables from "../components/Tables";
 import MainContainer from "../components/MainContainer";
-import {getCategories, deleteCategory} from "../services/apiCalls";
+import { getCategories, deleteCategory } from "../services/apiCalls";
+import AddIcon from "@mui/icons-material/Add";
+import { IconButton } from "@mui/material";
+import EditForm from "../components/EditForm";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -47,7 +51,16 @@ export default function Categories() {
     },
   ];
 
+  const [isCreating, setIsCreating] = useState(false);
 
+  const handleNewItemClick = () => {
+    setShowForm(true);
+    setIsCreating(true);
+  };
+  const handleCreateItem = () => {
+    setShowForm(false);
+    fetchCategories();
+  };
 
 
 
@@ -55,17 +68,30 @@ export default function Categories() {
     <div>
       <MainContainer
         page={
-          <Tables
-            data={categories}
-            columns={columns}
-            onDelete={deleting}
-            isCategoryTable={true}
-          />
+          <>
+            <div style={{ display: "flex", flexDirection: "row" }}>
+              <IconButton onClick={handleNewItemClick}>
+                <AddIcon style={{ color: "whitesmoke", fontSize: 40 }} />
+              </IconButton>
+              <h3 style={{ alignSelf: "center", marginLeft: 5 }}>
+                Insert new category
+              </h3>
+            </div>
+
+            <Tables
+              data={categories}
+              columns={columns}
+              onDelete={deleting}
+              isCategoryTable={true}
+              refresh={fetchCategories}
+            />
+            {showForm && <EditForm data={{}}  
+            isCategoryForm={true} isCreateForm={true} 
+            handleCreate={handleCreateItem}
+            handleCancel={() => setShowForm(false)} />}
+          </>
         }
       />
-      
     </div>
   );
 }
-
-

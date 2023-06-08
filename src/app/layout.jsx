@@ -3,10 +3,9 @@ import styles from "./page.module.css";
 
 import { Inter } from "next/font/google";
 import Header from "./components/Header"
-import Login from "./Login/page"
 
 import "rsuite/dist/rsuite.min.css";
-import { Footer } from "rsuite";
+
 
 const inter = Inter({ subsets: ["latin"] });
 

@@ -56,3 +56,52 @@ export async function deleteLayer(id) {
       console.error("Error eliminating: ", error);
     }
   }
+
+  export async function updating(url, id, format) {
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(format),
+      });
+  
+      if (response.ok) {
+        console.log("Updating was successful", id);
+      } else {
+        console.log("Error Updating: ", id);
+      }
+  
+      return response; // Devuelve la respuesta completa
+    } catch (error) {
+      console.error("Error Updating: ", error);
+      throw error; // Lanza el error para que pueda ser capturado en el componente
+    }
+  }
+  
+  export async function creating(url, format) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(format),
+      });
+  
+      console.log("creando nuevo dato");
+      console.log(format);
+      if (response.ok) {
+        console.log("Item created successfully");
+      } else {
+        console.log("Error creating item");
+      }
+  
+      return response; // Devuelve la respuesta completa
+    } catch (error) {
+      console.error("Error creating item", error);
+      throw error; // Lanza el error para que pueda ser capturado en el componente
+    }
+  }
+  

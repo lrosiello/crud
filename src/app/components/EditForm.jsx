@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,6 +7,7 @@ import {
   Button,
 } from "@mui/material";
 import "../styles/EditForm.css";
+import { updating, creating } from "../services/apiCalls";
 
 const columnLabels = {
   categories: {
@@ -25,7 +26,7 @@ const validateFields = (tableSelected, formData, setFieldErrors) => {
   const errors = {};
 
   Object.keys(columnLabels[tableSelected]).forEach((column) => {
-    if (!formData[column]) {
+    if (column !== "descripcion" && !formData[column]) {
       errors[column] = true;
     }
   });
@@ -40,8 +41,9 @@ const EditForm = ({
   categories,
   handleUpdate,
   handleCancel,
+  isCreateForm, // Prop que indica si es un formulario de creación
   isCategoryForm,
-  selectedCategory
+  handleCreate,
 }) => {
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -54,7 +56,10 @@ const EditForm = ({
   } else {
     tableSelected = "layers";
   }
-  console.log(formData);
+
+  useEffect(() => {
+    setFormData(data);
+  }, [data]);
 
   const handleFieldChange = (fieldName, value) => {
     setFormData((prevData) => ({
@@ -65,53 +70,78 @@ const EditForm = ({
 
   const handleSubmit = async () => {
     try {
-      let format;
+      let format = formattingPackage();
+    
+  
+      const fieldsAreValid = validateFields(
+        tableSelected,
+        formData,
+        setFieldErrors
+      );
+      let url;
 
-      if (isCategoryForm) {
-        format = {
-          categoryName: formData.nombre_categoria,
-          description: formData.descripcion,
-          orderNumber: formData.numero_orden,
-          available: formData.disponible,
-        };
+      if (isCreateForm) {
+        url = `${process.env.NEXT_PUBLIC_URL}/api/${tableSelected}`;
       } else {
-        format = {
-          layerName: formData.nombre_capa,
-          description: formData.descripcion,
-          orderNumber: formData.numero_orden,
-          category: formData.categoria,
-          available: formData.disponible,
-        };
+        url = `${process.env.NEXT_PUBLIC_URL}/api/${tableSelected}/${data.id}`;
       }
-      const fieldsAreValid = validateFields(tableSelected, formData, setFieldErrors);
-      const url = `${process.env.NEXT_PUBLIC_URL}/api/${tableSelected}/${data.id}`;
-      console.log(format);
-      console.log(url);
 
       if (!fieldsAreValid) {
         return;
       }
 
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(format),
-      });
+      let response;
+
+      if (isCreateForm) {
+        response = await creating(url, format);
+      } else {
+        response = await updating(url, data.id, format);
+      }
 
       if (response.ok) {
-        handleUpdate(formData);
+        if (isCreateForm) {
+          handleCreate(formData);
+        } else {
+          handleUpdate(formData);
+        }
       } else {
         const errorData = await response.json();
         setErrorMessage(errorData.error);
         setShowError(true);
       }
     } catch (error) {
-      console.error("Error updating the item:", error);
-      setErrorMessage("Error updating the item. Please check all fields.");
+      console.error("Error updating/creating the item:", error);
+      setErrorMessage(
+        "Error updating/creating the item. Please check all fields."
+      );
       setShowError(true);
     }
+  };
+
+  const formattingPackage = () => {
+    let format;
+    if (isCategoryForm) {
+      format = {
+        categoryName: formData.nombre_categoria,
+        description: formData.descripcion,
+        orderNumber: formData.numero_orden,
+        available: formData.disponible,
+      };
+    } else {
+      format = {
+        layerName: formData.nombre_capa,
+        description: formData.descripcion,
+        orderNumber: formData.numero_orden,
+        category: formData.categoria,
+        available: formData.disponible,
+      };
+    }
+    for (let field in format) {
+      if (format.hasOwnProperty(field) && format[field] === undefined) {
+        format[field] = "";
+      }
+    }
+    return format;
   };
 
   return (
@@ -124,7 +154,7 @@ const EditForm = ({
             boxShadow: "0 2px 4px rgba(110, 105, 105, 0.493)",
           }}
         >
-          Edit Item
+          {isCreateForm ? "Create" : "Edit"} Item
         </DialogTitle>
         <DialogContent style={{ backgroundColor: "#5b798463", paddingTop: 10 }}>
           <form className="edit-form">
@@ -144,29 +174,26 @@ const EditForm = ({
                 )}
               </div>
             ))}
+
             {!isCategoryForm && categories && categories.length > 0 && (
               <div className="form-group">
                 <label className="label">Category</label>
-                
                 <select
                   className="select-field"
                   value={formData.categoria}
-                  onChange={(e) =>{
-                    handleFieldChange("categoria", e.target.value);
-                    console.log(formData.categoria); // Agregar el console.log aquí
-                  }}
-                  
+                  onChange={(e) =>
+                    handleFieldChange("categoria", e.target.value)
+                  }
                 >
                   {categories.map((category) => (
                     <option key={category.id} value={category.nombre_categoria}>
                       {category.nombre_categoria}
                     </option>
                   ))}
-                  
                 </select>
               </div>
             )}
-            {!isCategoryForm && (
+
               <div className="form-group">
                 <label className="label">Available</label>
                 <select
@@ -180,22 +207,8 @@ const EditForm = ({
                   <option value={false}>False</option>
                 </select>
               </div>
-            )}
-            {isCategoryForm && (
-              <div className="form-group">
-                <label className="label">Available</label>
-                <select
-                  className="select-field"
-                  value={formData.disponible}
-                  onChange={(e) =>
-                    handleFieldChange("disponible", e.target.value === "true")
-                  }
-                >
-                  <option value={true}>True</option>
-                  <option value={false}>False</option>
-                </select>
-              </div>
-            )}
+          
+         
           </form>
         </DialogContent>
         {showError && (
@@ -210,7 +223,7 @@ const EditForm = ({
           }}
         >
           <Button onClick={handleSubmit} variant="contained" color="secondary">
-            Update
+            {isCreateForm ? "Create" : "Update"}
           </Button>
           <Button onClick={handleCancel} variant="contained" color="primary">
             Cancel

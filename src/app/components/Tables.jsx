@@ -10,41 +10,29 @@ const { Column, HeaderCell, Cell } = Table;
 const Tables = ({
   data,
   columns,
-  refresh,
   onDelete,
-
+  categories,
   isCategoryTable,
+  refresh,
 }) => {
+
+
+  //CONFIGURATIONS FROM RSUITE
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState(null);
-
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-
-  const [formData, setFormData] = useState(null);
-
-  
 
   const handleChangeLimit = (dataKey) => {
     setPage(1);
     setLimit(dataKey);
   };
-
   const filteredData = data.filter((v, i) => {
     const start = limit * (page - 1);
     const end = start + limit;
     return i >= start && i < end;
   });
 
-  const handleDeleteConfirmation = (id) => {
-    setSelectedItemId(id);
-    setShowConfirmation(true);
-  };
+  //DELETE AND CONFIRMATION
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const handleDelete = async () => {
     try {
@@ -58,41 +46,58 @@ const Tables = ({
       setShowErrorMessage(true);
     }
   };
-
+  const handleDeleteConfirmation = (id) => {
+    setSelectedItemId(id);
+    setShowConfirmation(true);
+  };
   const handleCancelDelete = () => {
     setShowConfirmation(false);
   };
+
+  //EDIT FORM AND SELECTED ITEM
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
 
   const handleEdit = (item) => {
     const formData = isCategoryTable ? item : { ...item};
     setFormData(formData);
     setShowEditForm(true);
   };
-
   const handleUpdate = async () => {
     try {
       setShowEditForm(false);
       setSuccessMessage("Item updated successfully.");
       setErrorMessage(null);
       setShowSuccessMessage(true); // Show success message
-      refresh();
+      await refresh(); // Call the refresh function to update the data
     } catch (error) {
       setErrorMessage(error.message || "An error occurred.");
       setSuccessMessage(null);
     }
   };
-
   const handleCancelEdit = () => {
     setShowEditForm(false);
     setFormData(null);
   };
 
+
+  //MESSAGERS
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
   const handleCloseMessage = () => {
     setShowSuccessMessage(false);
   };
 
+
+  //DATA
+  const [formData, setFormData] = useState(null);
+
+
+  //-------------------------------------------TABLES--------------------------------------------------------------
   return (
-    <div className="table-container" style={{ marginTop: 2 }}>
+    <div className="table-container" style={{ marginTop: 2  ,backgroundColor:"595e5a83"}}>
       {showSuccessMessage && (
          <div
          className="message-popup message-success message-container"
@@ -104,34 +109,35 @@ const Tables = ({
        </div>
       )}
 
-      <Table height={420} data={filteredData} className="responsive-table">
+      <Table height={420} data={filteredData} className="responsive-table" >
         {columns.map((column) => {
           return (
-            <Column
+            <Column style={{backgroundColor:"#595e5a83" ,color:"whitesmoke"}}
               key={column.dataKey}
               align={column.align}
               fixed={column.fixed}
             >
-              <HeaderCell>{column.header}</HeaderCell>
+              <HeaderCell >{column.header}</HeaderCell>
               <Cell dataKey={column.dataKey} />
             </Column>
           );
         })}
         {/* Columna de Edición */}
-        <Column width={100} align="center" fixed="right">
-          <HeaderCell>Edit</HeaderCell>
+        <Column width={100} align="center" fixed="right" >
+          <HeaderCell style={{backgroundColor:"#595e5a83",color:"whitesmoke"}}>Edit</HeaderCell >
           <Cell
             style={{
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-            }}
+              backgroundColor:"#595e5a83"}}
+            
           >
             {(rowData) => (
               <Button appearance="subtle" onClick={() => handleEdit(rowData)}>
                 <EditIcon
                   onClick={() => handleEdit(rowData)}
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer", color:"#26707a83"}}
                 />
               </Button>
             )}
@@ -139,12 +145,13 @@ const Tables = ({
         </Column>
         {/* Columna de Eliminación */}
         <Column width={100} align="center" fixed="right">
-          <HeaderCell>Delete</HeaderCell>
+          <HeaderCell style={{backgroundColor:"#595e5a83",color:"whitesmoke"}}>Delete</HeaderCell >
           <Cell
             style={{
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
+            backgroundColor:"#595e5a83"
             }}
           >
             {(rowData) => (
@@ -154,7 +161,7 @@ const Tables = ({
               >
                 <DeleteForeverIcon
                   onClick={() => handleDeleteConfirmation(rowData.id)}
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer",color:"darkred" }}
                 />
               </Button>
             )}
